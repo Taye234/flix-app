@@ -3,8 +3,10 @@
 
 
 let current_movie_or_tv;
-
+let pageStart;
+let pageEnd;
 const URLs='https://www.themoviedb.org/'
+let pageCount=document.querySelector(".page-counter")
 //Ftech Data form TMDB API
 async function fetchApiData(endpoint) {
     const spinner=document.querySelector(".spinner")
@@ -24,6 +26,128 @@ const Data=await res.json()
 spinner.classList.remove("show")
 return Data
 }
+//Display slider
+function initSwiper() {
+  const swiper = new Swiper('.swiper', {
+    slidesPerView: 1,
+    spaceBetween: 30,
+    freeMode: true,
+    loop: true,
+    autoplay: {
+      delay: 4000,
+      disableOnInteraction: false,
+    },
+    breakpoints: {
+      500: {
+        slidesPerView: 2,
+      },
+      700: {
+        slidesPerView: 3,
+      },
+      1200: {
+        slidesPerView: 4,
+      },
+    },
+  });
+}
+
+async function displaySlider() {
+  const { results } = await fetchApiData('movie/now_playing');
+
+  results.forEach((movie) => {
+    const div = document.createElement('div');
+    div.classList.add('swiper-slide');
+    console.log(movie.id);
+movie.type="movie"
+div.datas=movie
+
+    div.innerHTML = `
+      <a href="movie-details.html?id=${movie.id}">
+        <img src="https://image.tmdb.org/t/p/w500${movie.poster_path}" alt="${movie.title}" />
+      </a>
+      <h4 class="swiper-rating">
+        <i class="fas fa-star text-secondary"></i> ${movie.vote_average} / 10
+      </h4>
+    `;
+div.addEventListener("click",handle_details)
+    document.querySelector('.swiper-wrapper').appendChild(div);
+
+    initSwiper();
+  });
+}
+async function getNextPage(){
+  let prev=document.querySelector("#prev")
+   let next=document.querySelector("#next")
+    let cont=document.querySelector("#search-results")
+
+   next.addEventListener("click",(e)=>{
+if(pageStart<pageEnd){
+  pageStart++
+getDisplaySearch(pageStart)
+}
+   })
+   prev.addEventListener('click',(e)=>{
+if (pageStart>1){
+  pageStart--
+  getDisplaySearch(pageStart)
+}
+   })
+}
+
+async function  getDisplaySearch(page=1){
+    let movie_data=JSON.parse(localStorage.getItem("formData"))
+    let fetchData=await fetchApiData(`search/${movie_data.type}?query=${movie_data.searchItem}&page=${page}`)
+    pageEnd=fetchData.total_pages
+    console.log(pageEnd);
+console.log(fetchData);
+    let cont=document.querySelector("#search-results")
+
+    fetchData.results.forEach(each=>{
+    
+let card=document.createElement("div")
+  card.classList.add("card")
+  card.innerHTML=`
+   <a href="/${movie_data.type}-details.html">
+            <img src="${each.backdrop_path!==null?`https://image.tmdb.org/t/p/w1280${each.backdrop_path}`:"images/no-image.jpg"}" class="card-img-top" alt="" />
+          </a>
+          <div class="card-body">
+            <h5 class="card-title">${each.original_title||each.original_name}</h5>
+            <p class="card-text">
+              <small class="text-muted">Release: ${changeDate(each.release_date||each.first_air_date)}</small>
+            </p>
+          </div>
+  `
+  cont.appendChild(card)
+card.addEventListener("click",handle_details)
+})
+console.log(pageCount.textContent);
+pageCount.textContent=`${pageStart} of ${pageEnd}`
+c
+   
+  
+
+
+}
+
+ function getSearch() {
+ let form= document.querySelector(".search-form")
+    form.addEventListener("submit",handleSerach)
+    function handleSerach(e){
+  let data=new FormData(form)
+       localStorage.setItem("formData", JSON.stringify({type:data.get("type"),searchItem:data.get('search-term')}));
+       
+      
+}
+
+
+
+
+
+}
+    
+
+
+
 //Change date format from xxxx-xx-xx to xx/xx/xxxx
 function changeDate(fisrtDate){
 let actualDate=new Date(fisrtDate)
@@ -68,31 +192,28 @@ body.innerHTML=`
             </p>
             <h5>Genres</h5>
             <ul class="list-group">
-              <li>${res.genres[0].name}</li>
-              <li>${res.genres[1].name}</li>
-              <li>${res.genres[2].name}</li>
+              
+               ${res.genres.map(item => `<li>${item.name}</li>`).join('')}
             </ul>
-            <a href="#" target="_blank" class="btn">Visit Movie Homepage</a>
+            <a href="/index.html" target="_blank" class="btn">Visit Movie Homepage</a>
           </div>
         </div>
         <div class="details-bottom">
-          ${ `<h2>Show Info</h2>
+          ${type==="tv" ?`<h2>Show Info</h2>
           <ul>
-            <li><span class="text-secondary">Number Of Episodes:</span> 50</li>
+            <li><span class="text-secondary">Number Of Episodes:</span> ${res.number_of_episodes}</li>
             <li>
-              <span class="text-secondary">Last Episode To Air:</span> Last
-              Aired Show Episode
-            </li>
-            <li><span class="text-secondary">Status:</span> Released</li>
-          </ul>`?type==="tv":` <h2>Movie Info</h2>
+              <span class="text-secondary">Last Episode To Air:</span> ${res.last_episode_to_air.name}</li>
+            <li><span class="text-secondary">Status:</span> ${res.status}</li>
+          </ul>`:` <h2>Movie Info</h2>
           <ul>
-            <li><span class="text-secondary">Budget:</span> $1,000,000</li>
-            <li><span class="text-secondary">Revenue:</span> $2,000,000</li>
-            <li><span class="text-secondary">Runtime:</span> 90 minutes</li>
-            <li><span class="text-secondary">Status:</span> Released</li>
+            <li><span class="text-secondary">Budget:</span> ${res.budget}</li>
+            <li><span class="text-secondary">Revenue:</span> ${res.revenue}</li>
+            <li><span class="text-secondary">Runtime:</span> ${res.runtime}</li>
+            <li><span class="text-secondary">Status:</span> ${res.status}</li>
           </ul>`}
           <h4>Production Companies</h4>
-          <div class="list-group">Company 1, Company 2, Company 3</div>
+          <div class="list-group">  ${res.production_companies.map(movie => ` ${movie.name}`).join(", ")}</div>
         </div>
      
 `
@@ -119,7 +240,7 @@ card.datas=obj // attach each movie data to it element
 
 
     card.innerHTML=`
-<a href="${"/movie-details.html"?type==="movie":"/tv-details.html"}">
+<a href="/${type}-details.html">
             <img
               src="https://image.tmdb.org/t/p/w1280${obj.backdrop_path}" 
               class="card-img-top"
@@ -177,8 +298,10 @@ function init(){
    
     switch (global.currentPage){
         case "/index.html":
-            
+             
+           displaySlider()
             fetchDisplayPopular("movie")
+             getSearch()
          
             break
         case "/shows.html":
@@ -195,6 +318,12 @@ function init(){
             break
         case "/search.html":
             console.dir("Search");
+            getDisplaySearch()
+              getSearch()
+            pageStart=1
+         
+            getNextPage()
+         
     }
 
 
