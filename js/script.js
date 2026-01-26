@@ -260,14 +260,14 @@ function init(){
     ActiveFileColor()
    
     switch (global.currentPage){
-        case "index.html":
+        case '':
         
            displaySlider()
             fetchDisplayPopular("movie")
              getSearch()
             break
 
-        case "shows.html":
+        case "shows":
         fetchDisplayPopular("tv")
         break
 
