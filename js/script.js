@@ -2,13 +2,14 @@
 // 005f7817efc6e4863db0ed7aab6781e5    API KEY FOR TMDB
 
 //  GLOBAL VARIABLE AND FUNCTIONS
+
 let current_movie_or_tv;
 let pageStart;
 let pageEnd;
 const URLs='https://www.themoviedb.org/'
 let pageCount=document.querySelector(".page-counter")
 const global={
-currentPage:window.location.pathname  
+currentPage:window.location.pathname.split('/').pop()
 }
 
 function changeDate(fisrtDate){//date Format Changer
@@ -259,25 +260,26 @@ function init(){
     ActiveFileColor()
    
     switch (global.currentPage){
-        case "/index.html":
+        case "index.html":
+        
            displaySlider()
             fetchDisplayPopular("movie")
              getSearch()
             break
 
-        case "/shows.html":
+        case "shows.html":
         fetchDisplayPopular("tv")
         break
 
-        case "/movie-details.html":
+        case "movie-details.html":
            getDisplaySpecific("movie")
             break
 
-        case "/tv-details.html":
+        case "tv-details.html":
             getDisplaySpecific("tv")
             break
 
-        case "/search.html":
+        case "search.html":
             console.dir("Search");
             getDisplaySearch()
               getSearch()
