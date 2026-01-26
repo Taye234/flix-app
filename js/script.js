@@ -11,7 +11,7 @@ let pageCount=document.querySelector(".page-counter")
 const global={
 currentPage:window.location.pathname.split('/').pop()
 }
-
+console.log(global);
 function changeDate(fisrtDate){//date Format Changer
 let actualDate=new Date(fisrtDate)
 let day=String(actualDate.getDate()).padStart(2,"0")
